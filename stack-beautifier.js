@@ -51,7 +51,7 @@ if (!program.args.length) {
 const STACK_LINE_MATCHERS = [
   { regex: /^(.*)\@(\d+)\:(\d+)$/, idx: [1, 2, 3] }, // Format: someFun@13:12
   { regex: /^at (.*)\:(\d+)\:(\d+)$/, idx: [1, 2, 3] }, // Format: at filename:13:12
-  { regex: /^at (.*) \((.*)\:(\d+)\:(\d+)\)$/, idx: [1, 3, 4] }, // Format: at someFun (filename:13:12)
+  { regex: /^\s*at .(.*)\((.*)\:(\d+)\:(\d+)\)$/, idx: [1, 3, 4] }, // Format: at someFun(filename:13:12)
   { regex: /^at (.*)\:(\d+)$/, idx: [1, 2, 3] }, // Format: at filename:13
 ];
 
@@ -122,6 +122,9 @@ function processStack(lines, sourceMapConsumer) {
       } else {
         throw new Error(`Stack trace parse error at line ${i + 1}: ${line}`);
       }
+    } else if (line.includes('[native code]')) {
+      // we bypass native code lines from Crashlytics logs
+      result.push({ text: line });
     } else {
       result.push(processMatchedLine(match, sourceMapConsumer));
     }
